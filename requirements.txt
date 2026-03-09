@@ -1,0 +1,22 @@
+# AI Traffic Optimizer — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Core vision & detection ───────────────────
+opencv-python>=4.9.0
+ultralytics>=8.2.0          # YOLOv8 (includes PyTorch)
+numpy>=1.26.0
+
+# ── Messaging ────────────────────────────────
+pyzmq>=26.0.0
+
+# ── Data & logging ───────────────────────────
+pandas>=2.2.0
+
+# ── SUMO / traffic simulation ─────────────────
+# sumo-tools is bundled with SUMO — install SUMO separately
+# and add $SUMO_HOME/tools to PYTHONPATH.
+# Uncomment if using pip-only sumo-tools:
+# eclipse-sumo>=1.20.0
+
+# ── Utilities ────────────────────────────────
+python-dotenv>=1.0.0

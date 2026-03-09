@@ -1,0 +1,111 @@
+# AI Traffic Optimizer - .gitignore
+
+# ── Python ─────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ── Virtual Environment ────────────────────
+.venv/
+venv/
+ENV/
+env/
+
+# ── Node.js ────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ── Environment & Config ───────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ── AI/ML Models ───────────────────────────
+*.pt
+*.pth
+yolov8*.pt
+runs/
+ultralytics/
+
+# ── Generated Files ────────────────────────
+start_demo.bat
+start_demo.sh
+
+# ── Logs & Data ────────────────────────────
+logs/
+*.log
+*.csv
+*.db
+*.sqlite
+*.sqlite3
+
+# ── SUMO Generated ─────────────────────────
+sumo/
+*.sumocfg
+*.xml
+*.rou.xml
+*.net.xml
+*.add.xml
+
+# ── OS Specific ────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── IDE & Editors ─────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Temporary & Cache ──────────────────────
+*.tmp
+*.temp
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Video Files (Optional - Comment out if you want to include demo videos) ─
+# *.mp4
+# *.avi
+# *.mov
+# *.mkv
+
+# ── Keep These ─────────────────────────────
+!.env.example
+!README.md
+!requirements.txt
+!package.json
+!DEMO_GUIDE.md
+!PPT_REFERENCES.md
+!FINAL_REVIEW.md
