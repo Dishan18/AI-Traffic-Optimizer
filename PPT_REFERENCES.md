@@ -185,8 +185,7 @@
 
 ### Your Project Resources
 
-- **GitHub Repository**: [Add your GitHub URL here]
-- **Live Demo Video**: [Add YouTube/Vimeo URL here]
+- **GitHub Repository**: https://github.com/Dishan18/AI-Traffic-Optimizer
 - **API Documentation**: http://localhost:4000/api/health (when running)
 
 ### Related Open Source Projects
