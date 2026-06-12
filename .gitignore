@@ -95,11 +95,11 @@ desktop.ini
 .coverage
 htmlcov/
 
-# ── Video Files (Optional - Comment out if you want to include demo videos) ─
-# *.mp4
-# *.avi
-# *.mov
-# *.mkv
+#Video Files (Optional - Comment out if you want to include demo videos) ─
+*.mp4
+*.avi
+*.mov
+*.mkv
 
 # ── Keep These ─────────────────────────────
 !.env.example

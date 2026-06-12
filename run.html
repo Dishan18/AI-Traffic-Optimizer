@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Traffic Optimizer - Local Run Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #161e31;
+      --bg-tertiary: #1f2a45;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.15);
+      --accent-success: #10b981;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border: rgba(255, 255, 255, 0.08);
+      --sidebar-width: 280px;
+      --glass: rgba(22, 30, 49, 0.7);
+      --font-sans: 'Outfit', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    /* Sidebar */
+    aside {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 2.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 3rem;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .logo-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
+    }
+
+    .logo-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #ffffff, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item a:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-item.active a {
+      color: white;
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+    }
+
+    /* Main Content Area */
+    main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 3.5rem 4rem;
+      max-width: 1100px;
+    }
+
+    header {
+      margin-bottom: 3.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background: var(--accent-glow);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+      font-weight: 400;
+    }
+
+    /* Sections */
+    section {
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: border-color 0.3s ease;
+    }
+
+    section:hover {
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    h2 svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--accent);
+    }
+
+    .description {
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+      font-size: 1.05rem;
+    }
+
+    /* Grid layout for Prerequisites */
+    .prereq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .prereq-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .prereq-card h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .prereq-card .tech-ver {
+      font-size: 0.85rem;
+      background: var(--bg-tertiary);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .prereq-card ul {
+      list-style-type: none;
+      padding-left: 0.25rem;
+    }
+
+    .prereq-card li {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .prereq-card li::before {
+      content: "•";
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* Interactive Steps Launcher Tabs */
+    .tabs {
+      display: flex;
+      background: var(--bg-secondary);
+      padding: 0.35rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+      width: fit-content;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: var(--bg-tertiary);
+      color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    /* Code Blocks */
+    .code-container {
+      position: relative;
+      margin: 1.25rem 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .code-header {
+      background: #0d1117;
+      padding: 0.5rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .code-lang {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-family: var(--font-sans);
+      font-weight: 500;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .copy-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    pre {
+      background: #090c10;
+      padding: 1.25rem;
+      overflow-x: auto;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #c9d1d9;
+    }
+
+    .code-keyword { color: #ff7b72; }
+    .code-string { color: #a5d6ff; }
+    .code-comment { color: #8b949e; }
+    .code-function { color: #d2a8ff; }
+
+    /* Interactive Checklist */
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .checklist-item:hover {
+      background: rgba(255,255,255,0.02);
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .checklist-checkbox {
+      margin-top: 0.2rem;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .checklist-content {
+      flex: 1;
+    }
+
+    .checklist-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .checklist-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .checklist-item.checked {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.02);
+    }
+
+    .checklist-item.checked .checklist-title {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    /* Flow Graphic */
+    .flow-graphic {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 2rem 0;
+      position: relative;
+    }
+
+    @media (max-width: 768px) {
+      .flow-graphic {
+        flex-direction: column;
+        gap: 2rem;
+      }
+      .flow-arrow {
+        transform: rotate(90deg);
+      }
+    }
+
+    .flow-step {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .flow-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      margin: 0 auto 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .flow-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .flow-step h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .flow-step p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-weight: bold;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulseArrow 2s infinite ease-in-out;
+    }
+
+    /* Troubleshooter Accordion */
+    .accordion {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .accordion-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .accordion-header {
+      padding: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .accordion-header:hover {
+      background: rgba(255,255,255,0.01);
+    }
+
+    .accordion-header svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--text-muted);
+      transition: transform 0.3s;
+    }
+
+    .accordion-content {
+      padding: 0 1.25rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, padding 0.3s ease;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      border-top: 1px solid transparent;
+    }
+
+    .accordion-item.open .accordion-header svg {
+      transform: rotate(180deg);
+    }
+
+    .accordion-item.open .accordion-content {
+      padding: 1.25rem;
+      max-height: 200px;
+      border-top-color: var(--border);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseArrow {
+      0%, 100% { transform: translateX(0); opacity: 0.5; }
+      50% { transform: translateX(6px); opacity: 1; }
+    }
+
+    /* Utility Info Box */
+    .info-box {
+      display: flex;
+      gap: 1rem;
+      background: rgba(99, 102, 241, 0.05);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .info-box svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .info-box-content h5 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      color: #a5b4fc;
+    }
+
+    .info-box-content p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="logo-container">
+      <div class="logo-icon">
+        <!-- SVG for Traffic Signal/Router -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12,2A10,10,0,0,0,2,12a9.89,9.89,0,0,0,2.26,6.33L3,21a1,1,0,0,0,1,1l2.67-1.26A9.9,9.9,0,0,0,12,22a10,10,0,0,0,10-10A10,10,0,0,0,12,2ZM12,6a2,2,0,1,1-2,2A2,2,0,0,1,12,6Zm0,8a2,2,0,1,1,2-2A2,2,0,0,1,12,14Zm0,4a2,2,0,1,1,2-2A2,2,0,0,1,12,18Z"/>
+        </svg>
+      </div>
+      <span class="logo-title">AI Traffic Control</span>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active"><a href="#setup-guide">Setup Guide</a></li>
+      <li class="nav-item"><a href="#prerequisites">Prerequisites</a></li>
+      <li class="nav-item"><a href="#running-system">Running System</a></li>
+      <li class="nav-item"><a href="#architecture">Architecture Flow</a></li>
+      <li class="nav-item"><a href="#troubleshooting">Troubleshooting</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <header id="setup-guide">
+      <div class="badge">
+        <svg style="width: 14px; height: 14px; fill: currentColor; vertical-align: middle; margin-right: 4px;" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        Bharat Mandapam Demo Ready
+      </div>
+      <h1>Local Machine Execution Guide</h1>
+      <p class="subtitle">A step-by-step developer guide to spin up and test the AI Traffic Optimizer on your system.</p>
+    </header>
+
+    <!-- Section 1: Prerequisites -->
+    <section id="prerequisites">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+        Prerequisites Verification
+      </h2>
+      <p class="description">Before launching, ensure you have the proper runtime environments installed. Check the system requirements checklist:</p>
+      
+      <div class="prereq-grid">
+        <div class="prereq-card">
+          <h3>🐍 Python <span class="tech-ver">&ge; 3.10</span></h3>
+          <ul>
+            <li>OpenCV (`opencv-python`)</li>
+            <li>YOLOv8 (`ultralytics`)</li>
+            <li>ZeroMQ (`pyzmq`)</li>
+            <li>Pandas (`pandas`)</li>
+          </ul>
+        </div>
+        <div class="prereq-card">
+          <h3>🟢 Node.js <span class="tech-ver">&ge; 18.0</span></h3>
+          <ul>
+            <li>Express & Helmet</li>
+            <li>Socket.io & ZeroMQ</li>
+            <li>jsonwebtoken & bcryptjs</li>
+            <li>morgan & dotenv</li>
+          </ul>
+        </div>
+        <div class="prereq-card">
+          <h3>🚗 SUMO (Optional)</h3>
+          <ul>
+            <li>`SUMO_HOME` env variable set</li>
+            <li>SUMO GUI launcher</li>
+            <li>Used to validate AI signal flows in mock traffic networks</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Automated Demo Setup -->
+    <section id="automated-setup">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"/></svg>
+        Step 1: Automated Environment Setup
+      </h2>
+      <p class="description">We provide an automated setup verification script that checks your dependencies, creates default environmental values, pre-downloads the YOLO weights, and sets up a launcher.</p>
+
+      <div class="code-container">
+        <div class="code-header">
+          <span class="code-lang">powershell</span>
+          <button class="copy-btn" onclick="copyCode(this)">
+            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            Copy
+          </button>
+        </div>
+        <pre><code><span class="code-comment"># Navigate to your workspace directory</span>
+<span class="code-keyword">cd</span> <span class="code-string">"C:\Users\User\Desktop\delhi"</span>
+
+<span class="code-comment"># Run the setup script</span>
+<span class="code-keyword">python</span> <span class="code-function">demo_setup.py</span></code></pre>
+      </div>
+
+      <div class="info-box">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        <div class="info-box-content">
+          <h5>YOLOv8 Nano Model Downloading</h5>
+          <p>The setup script will fetch the <code>yolov8n.pt</code> weight file directly from Ultralytics servers so there is no start lag during your presentation.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Running the Demo -->
+    <section id="running-system">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        Step 2: Run the Infrastructure
+      </h2>
+      <p class="description">You can launch the complete pipeline automatically using our script, or run the components manually for finer control during your demonstration.</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('automatic')">⚡ One-Click (Windows)</button>
+        <button class="tab-btn" onclick="switchTab('manual')">🛠️ Manual Terminals</button>
+      </div>
+
+      <!-- Tab: Automatic -->
+      <div id="tab-automatic" class="tab-pane active">
+        <p class="description">Double-click or run the compiled batch file. This will spawn 4 independent console windows configured in the correct execution order:</p>
+        
+        <div class="code-container">
+          <div class="code-header">
+            <span class="code-lang">cmd</span>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+              Copy
+            </button>
+          </div>
+          <pre><code><span class="code-keyword">start_demo.bat</span></code></pre>
+        </div>
+      </div>
+
+      <!-- Tab: Manual -->
+      <div id="tab-manual" class="tab-pane">
+        <p class="description">Open 4 separate terminal windows, navigating to <code>C:\Users\User\Desktop\delhi</code> in each, and run these commands in order:</p>
+        
+        <div style="display:flex; flex-direction:column; gap:1.5rem;">
+          <div>
+            <strong>1. Terminal 1: Perception Engine 🎥</strong>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Performs YOLO detection on traffic feed. Shows annotated window.</p>
+            <div class="code-container" style="margin:0;">
+              <div class="code-header">
+                <span class="code-lang">python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                  <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                  Copy
+                </button>
+              </div>
+              <pre><code><span class="code-keyword">python</span> detection.py --source traffic_video.mp4</code></pre>
+            </div>
+          </div>
+
+          <div>
+            <strong>2. Terminal 2: Optimizer Brain 🧠</strong>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Processes weights and schedules green phases via Priority Queue.</p>
+            <div class="code-container" style="margin:0;">
+              <div class="code-header">
+                <span class="code-lang">python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                  <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                  Copy
+                </button>
+              </div>
+              <pre><code><span class="code-keyword">python</span> optimizer.py</code></pre>
+            </div>
+          </div>
+
+          <div>
+            <strong>3. Terminal 3: API Command Server 🌐</strong>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Starts WebSockets & override REST endpoint.</p>
+            <div class="code-container" style="margin:0;">
+              <div class="code-header">
+                <span class="code-lang">node</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                  <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                  Copy
+                </button>
+              </div>
+              <pre><code><span class="code-keyword">npm</span> start</code></pre>
+            </div>
+          </div>
+
+          <div>
+            <strong>4. Terminal 4: SUMO Traffic Simulator 🚗</strong>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Launches the visual road grid (falls back to mock if SUMO is absent).</p>
+            <div class="code-container" style="margin:0;">
+              <div class="code-header">
+                <span class="code-lang">python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                  <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                  Copy
+                </button>
+              </div>
+              <pre><code><span class="code-keyword">python</span> sumo_config.py --gui</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Architecture Flow -->
+    <section id="architecture">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/></svg>
+        System Architecture Flow
+      </h2>
+      <p class="description">The modules communicate in real-time over ZeroMQ IPC and WebSockets:</p>
+
+      <div class="flow-graphic">
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+          </div>
+          <h4>Perception</h4>
+          <p>YOLOv8 runs CV object counts on video feeds</p>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1c-.37.25-.59.68-.59 1.13V16h-4.5v-1.77c0-.45-.22-.88-.59-1.13C7.86 12.23 7 10.7 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.7-.86 3.23-2.15 4.1z"/></svg>
+          </div>
+          <h4>Brain</h4>
+          <p>Computes weights and queues green durations</p>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+          </div>
+          <h4>API Server</h4>
+          <p>Bridges data to sockets & runs manual override REST routes</p>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          </div>
+          <h4>SUMO Sim</h4>
+          <p>Translates commands to realistic grid flows</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Step-by-Step Run Verification Checklist -->
+    <section id="verification-checklist">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        Interactive Setup Checklist
+      </h2>
+      <p class="description">Click each item as you verify the processes are working correctly during your demo run:</p>
+      
+      <div class="checklist">
+        <div class="checklist-item" onclick="toggleChecklist(this)">
+          <input type="checkbox" class="checklist-checkbox">
+          <div class="checklist-content">
+            <div class="checklist-title">1. Verify API Health Endpoint</div>
+            <div class="checklist-desc">Visit <code>http://localhost:4000/api/health</code> in your web browser. It should output <code>{"status":"ok",...}</code>.</div>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleChecklist(this)">
+          <input type="checkbox" class="checklist-checkbox">
+          <div class="checklist-content">
+            <div class="checklist-title">2. Verify Live Signal Stream</div>
+            <div class="checklist-desc">Check <code>http://localhost:4000/api/signal/state</code>. Verify the lane weight data updates in real-time.</div>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleChecklist(this)">
+          <input type="checkbox" class="checklist-checkbox">
+          <div class="checklist-content">
+            <div class="checklist-title">3. View YOLO Bounding Boxes</div>
+            <div class="checklist-desc">Make sure the OpenCV frame pop-up is successfully rendering green/orange borders and ambulance detection alerts.</div>
+          </div>
+        </div>
+        <div class="checklist-item" onclick="toggleChecklist(this)">
+          <input type="checkbox" class="checklist-checkbox">
+          <div class="checklist-content">
+            <div class="checklist-title">4. Confirm Database & CSV Logs</div>
+            <div class="checklist-desc">Check <code>logs/signal_log.csv</code> and <code>logs/traffic.db</code> in your directory. They should grow as optimizer decisions are logged.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: Troubleshooting Accordion -->
+    <section id="troubleshooting">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        Troubleshooting Guide
+      </h2>
+      <p class="description">Encountered an issue? Expand the items below for quick fixes:</p>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            "ultralytics not found — running in MOCK mode"
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
+          <div class="accordion-content">
+            Run <code>pip install ultralytics</code>. If you hit PyTorch installation issues, verify you have the correct Python architecture, or install PyTorch explicitly from <a href="https://pytorch.org/" target="_blank" style="color:var(--accent)">pytorch.org</a> first.
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            "ZMQ: Address already in use" (Port conflicts)
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
+          <div class="accordion-content">
+            Ports 5555 or 5556 are currently occupied by a hanging script. Find and terminate the process in Windows PowerShell using:<br>
+            <code>netstat -ano | findstr :5555</code><br>
+            Then run <code>taskkill /F /PID &lt;PID&gt;</code> using the PID shown.
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            SUMO "FileNotFoundError" or "SUMO_HOME not set"
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
+          <div class="accordion-content">
+            Run <code>python sumo_config.py</code> once first to generate simulation networks. If you see env errors, configure your local environment path:<br>
+            <code>$env:SUMO_HOME = "C:\Program Files\Eclipse\Sumo"</code>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            OpenCV: "Cannot open video source"
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
+          <div class="accordion-content">
+            Verify <code>traffic_video.mp4</code> is in the directory. If utilizing a webcam and experiencing errors, try alternate indices in <code>detection.py</code> (e.g. <code>--source 1</code> or <code>--source 2</code>).
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>&copy; 2026 AI Traffic Optimizer. Crafted for Bharat Mandapam Hackathon.</p>
+    </footer>
+  </main>
+
+  <script>
+    // Copy Code Block function
+    function copyCode(btn) {
+      const pre = btn.closest('.code-container').querySelector('pre');
+      const text = pre.innerText.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" style="fill:var(--accent-success)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Copied!
+        `;
+        btn.style.color = "var(--accent-success)";
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.color = "var(--text-muted)";
+        }, 2000);
+      });
+    }
+
+    // Tab Switching logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    // Interactive Checklist
+    function toggleChecklist(item) {
+      const checkbox = item.querySelector('.checklist-checkbox');
+      if (event.target !== checkbox) {
+        checkbox.checked = !checkbox.checked;
+      }
+      if (checkbox.checked) {
+        item.classList.add('checked');
+      } else {
+        item.classList.remove('checked');
+      }
+    }
+
+    // Troubleshooter Accordion Toggle
+    function toggleAccordion(header) {
+      const item = header.closest('.accordion-item');
+      const isOpen = item.classList.contains('open');
+      
+      // Close all first
+      document.querySelectorAll('.accordion-item').forEach(i => {
+        i.classList.remove('open');
+        i.querySelector('.accordion-content').style.maxHeight = null;
+      });
+
+      if (!isOpen) {
+        item.classList.add('open');
+        const content = item.querySelector('.accordion-content');
+        content.style.maxHeight = content.scrollHeight + "px";
+      }
+    }
+  </script>
+</body>
+</html>

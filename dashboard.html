@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Traffic Optimizer - Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #080b11;
+      --bg-secondary: #0f1524;
+      --bg-tertiary: #172136;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.15);
+      --accent-success: #10b981;
+      --accent-success-glow: rgba(16, 185, 129, 0.2);
+      --accent-danger: #ef4444;
+      --accent-danger-glow: rgba(239, 68, 68, 0.2);
+      --accent-warning: #f59e0b;
+      --accent-warning-glow: rgba(245, 158, 11, 0.2);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border: rgba(255, 255, 255, 0.08);
+      --glass: rgba(15, 21, 36, 0.7);
+      --font-sans: 'Outfit', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .brand-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+    }
+
+    .brand-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-danger);
+      transition: all 0.3s;
+    }
+
+    .status-dot.online {
+      background: var(--accent-success);
+      box-shadow: 0 0 10px var(--accent-success);
+    }
+
+    /* Main Dashboard Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (min-width: 992px) {
+      .dashboard-grid {
+        grid-template-columns: 3fr 1fr;
+      }
+    }
+
+    /* Left Panel: Signal State & Lanes */
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Active Signal Indicator Card */
+    .active-signal-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .active-signal-card.emergency-alert {
+      border-color: var(--accent-danger);
+      background: rgba(239, 68, 68, 0.05);
+      animation: alertPulse 2s infinite;
+    }
+
+    .active-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .active-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    .active-lane-name {
+      font-size: 2.25rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .timer-container {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .timer-circle {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 4px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      position: relative;
+    }
+
+    .timer-circle.green {
+      border-color: var(--accent-success);
+      box-shadow: 0 0 20px var(--accent-success-glow);
+    }
+
+    .timer-circle.emergency {
+      border-color: var(--accent-danger);
+      box-shadow: 0 0 25px var(--accent-danger-glow);
+      animation: timerFlash 1s infinite alternate;
+    }
+
+    .timer-circle.override {
+      border-color: var(--accent-warning);
+      box-shadow: 0 0 20px var(--accent-warning-glow);
+    }
+
+    .timer-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .timer-unit {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Lanes Overview Grid */
+    .lanes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .lane-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .lane-card.active-green {
+      border-color: var(--accent-success);
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1);
+    }
+
+    .lane-card.active-override {
+      border-color: var(--accent-warning);
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+    }
+
+    .lane-card.active-emergency {
+      border-color: var(--accent-danger);
+      box-shadow: 0 4px 25px rgba(239, 68, 68, 0.15);
+      animation: alertPulse 1.5s infinite;
+    }
+
+    .lane-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lane-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .lane-status-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .lane-status-badge.green {
+      background: var(--accent-success-glow);
+      color: var(--accent-success);
+    }
+
+    .lane-status-badge.emergency {
+      background: var(--accent-danger-glow);
+      color: var(--accent-danger);
+      animation: blinkText 1s infinite alternate;
+    }
+
+    .lane-status-badge.override {
+      background: var(--accent-warning-glow);
+      color: var(--accent-warning);
+    }
+
+    .density-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .density-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .density-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .density-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.5s ease, background 0.3s;
+    }
+
+    .lane-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+    }
+
+    .detail-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    /* Right Panel: Controls & Override */
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .control-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-title svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--accent);
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: white;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      background: #4f46e5;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn:disabled {
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-danger {
+      background: var(--accent-danger);
+    }
+    .btn-danger:hover {
+      background: #dc2626;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Logs Card */
+    .logs-container {
+      background: #05070a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      height: 180px;
+      overflow-y: auto;
+      color: #9ca3af;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .log-entry {
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      padding-bottom: 0.25rem;
+      word-break: break-all;
+    }
+
+    .log-time { color: var(--accent); }
+    .log-info { color: #fff; }
+    .log-warning { color: var(--accent-warning); }
+    .log-danger { color: var(--accent-danger); }
+
+    /* Alert Banner */
+    .alert-banner {
+      background: var(--accent-danger);
+      color: white;
+      padding: 0.75rem 2rem;
+      font-weight: 700;
+      text-align: center;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(239,68,68,0.3);
+    }
+
+    .alert-banner svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+      animation: scaleBeat 1s infinite alternate;
+    }
+
+    /* User Profile section */
+    .user-profile {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .user-tag {
+      font-weight: 700;
+      color: var(--accent-success);
+    }
+
+    .logout-link {
+      color: var(--accent-danger);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Animations */
+    @keyframes alertPulse {
+      0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); }
+      50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.6); }
+    }
+
+    @keyframes timerFlash {
+      0% { opacity: 1; }
+      100% { opacity: 0.8; background: rgba(239, 68, 68, 0.1); }
+    }
+
+    @keyframes blinkText {
+      0% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    @keyframes scaleBeat {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.25); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Emergency Banner -->
+  <div class="alert-banner" id="emergency-banner">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+    </svg>
+    AMBULANCE DETECTED - EMERGENCY SYSTEM CORRIDOR ENABLED
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12,2A10,10,0,0,0,2,12a9.89,9.89,0,0,0,2.26,6.33L3,21a1,1,0,0,0,1,1l2.67-1.26A9.9,9.9,0,0,0,12,22a10,10,0,0,0,10-10A10,10,0,0,0,12,2ZM12,6a2,2,0,1,1-2,2A2,2,0,0,1,12,6Zm0,8a2,2,0,1,1,2-2A2,2,0,0,1,12,14Zm0,4a2,2,0,1,1,2-2A2,2,0,0,1,12,18Z"/>
+        </svg>
+      </div>
+      <span class="brand-title">AI Traffic Optimizer</span>
+    </div>
+    
+    <div class="system-status">
+      <div class="status-indicator">
+        <div class="status-dot" id="socket-dot"></div>
+        <span id="socket-text">Offline</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Grid -->
+  <div class="dashboard-grid">
+    
+    <!-- Left Panel -->
+    <div class="main-panel">
+      
+      <!-- Active Signal Card -->
+      <div class="active-signal-card" id="active-signal-card">
+        <div class="active-info">
+          <span class="active-label">Active Green Phase</span>
+          <span class="active-lane-name" id="active-lane-name">Initializing...</span>
+          <span id="override-badge" style="display:none; color:var(--accent-warning); font-size:0.85rem; font-weight:700;">[ MANUAL OVERRIDE ACTIVE ]</span>
+        </div>
+        
+        <div class="timer-container">
+          <div class="timer-circle" id="timer-circle">
+            <span class="timer-value" id="timer-value">--</span>
+            <span class="timer-unit">Seconds</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lanes Overview -->
+      <div class="lanes-grid">
+        <!-- Lane 0 -->
+        <div class="lane-card" id="lane-card-0">
+          <div class="lane-card-header">
+            <span class="lane-title">Lane 0</span>
+            <span class="lane-status-badge" id="lane-badge-0">Red</span>
+          </div>
+          
+          <div class="density-section">
+            <div class="density-label">
+              <span>Traffic Density</span>
+              <span id="lane-density-val-0">0</span>
+            </div>
+            <div class="density-bar-bg">
+              <div class="density-bar-fill" id="lane-density-bar-0"></div>
+            </div>
+          </div>
+
+          <div class="lane-details-grid">
+            <div class="detail-item"><span class="detail-label">Cars</span><span class="detail-val" id="lane-cars-0">0</span></div>
+            <div class="detail-item"><span class="detail-label">Buses</span><span class="detail-val" id="lane-buses-0">0</span></div>
+            <div class="detail-item"><span class="detail-label">Motos</span><span class="detail-val" id="lane-motos-0">0</span></div>
+            <div class="detail-item"><span class="detail-label">Weight</span><span class="detail-val" id="lane-weight-0">0.0</span></div>
+          </div>
+        </div>
+
+        <!-- Lane 1 -->
+        <div class="lane-card" id="lane-card-1">
+          <div class="lane-card-header">
+            <span class="lane-title">Lane 1</span>
+            <span class="lane-status-badge" id="lane-badge-1">Red</span>
+          </div>
+          
+          <div class="density-section">
+            <div class="density-label">
+              <span>Traffic Density</span>
+              <span id="lane-density-val-1">0</span>
+            </div>
+            <div class="density-bar-bg">
+              <div class="density-bar-fill" id="lane-density-bar-1"></div>
+            </div>
+          </div>
+
+          <div class="lane-details-grid">
+            <div class="detail-item"><span class="detail-label">Cars</span><span class="detail-val" id="lane-cars-1">0</span></div>
+            <div class="detail-item"><span class="detail-label">Buses</span><span class="detail-val" id="lane-buses-1">0</span></div>
+            <div class="detail-item"><span class="detail-label">Motos</span><span class="detail-val" id="lane-motos-1">0</span></div>
+            <div class="detail-item"><span class="detail-label">Weight</span><span class="detail-val" id="lane-weight-1">0.0</span></div>
+          </div>
+        </div>
+
+        <!-- Lane 2 -->
+        <div class="lane-card" id="lane-card-2">
+          <div class="lane-card-header">
+            <span class="lane-title">Lane 2</span>
+            <span class="lane-status-badge" id="lane-badge-2">Red</span>
+          </div>
+          
+          <div class="density-section">
+            <div class="density-label">
+              <span>Traffic Density</span>
+              <span id="lane-density-val-2">0</span>
+            </div>
+            <div class="density-bar-bg">
+              <div class="density-bar-fill" id="lane-density-bar-2"></div>
+            </div>
+          </div>
+
+          <div class="lane-details-grid">
+            <div class="detail-item"><span class="detail-label">Cars</span><span class="detail-val" id="lane-cars-2">0</span></div>
+            <div class="detail-item"><span class="detail-label">Buses</span><span class="detail-val" id="lane-buses-2">0</span></div>
+            <div class="detail-item"><span class="detail-label">Motos</span><span class="detail-val" id="lane-motos-2">0</span></div>
+            <div class="detail-item"><span class="detail-label">Weight</span><span class="detail-val" id="lane-weight-2">0.0</span></div>
+          </div>
+        </div>
+
+        <!-- Lane 3 -->
+        <div class="lane-card" id="lane-card-3">
+          <div class="lane-card-header">
+            <span class="lane-title">Lane 3</span>
+            <span class="lane-status-badge" id="lane-badge-3">Red</span>
+          </div>
+          
+          <div class="density-section">
+            <div class="density-label">
+              <span>Traffic Density</span>
+              <span id="lane-density-val-3">0</span>
+            </div>
+            <div class="density-bar-bg">
+              <div class="density-bar-fill" id="lane-density-bar-3"></div>
+            </div>
+          </div>
+
+          <div class="lane-details-grid">
+            <div class="detail-item"><span class="detail-label">Cars</span><span class="detail-val" id="lane-cars-3">0</span></div>
+            <div class="detail-item"><span class="detail-label">Buses</span><span class="detail-val" id="lane-buses-3">0</span></div>
+            <div class="detail-item"><span class="detail-label">Motos</span><span class="detail-val" id="lane-motos-3">0</span></div>
+            <div class="detail-item"><span class="detail-label">Weight</span><span class="detail-val" id="lane-weight-3">0.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Override & Console Logs -->
+    <div class="control-panel">
+      
+      <!-- Command Center Controls -->
+      <div class="control-card">
+        <div class="card-title">
+          <!-- Dial dial/lock icon -->
+          <svg viewBox="0 0 24 24">
+            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+          </svg>
+          VIP Control Override
+        </div>
+
+        <!-- Auth Section -->
+        <div id="auth-section">
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Authenticate as a Traffic Officer to enable overriding commands.</p>
+          
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" value="admin">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" value="Admin@1234">
+          </div>
+          <button class="btn" id="login-btn" onclick="login()">Log In</button>
+        </div>
+
+        <!-- Controller Section -->
+        <div id="override-section" style="display:none;">
+          <div class="user-profile">
+            <span>Officer: <span class="user-tag" id="user-tag">admin</span></span>
+            <span class="logout-link" onclick="logout()">Log Out</span>
+          </div>
+
+          <div class="form-group">
+            <label for="override-lane">Select Target Lane</label>
+            <select id="override-lane">
+              <option value="0">Lane 0</option>
+              <option value="1">Lane 1</option>
+              <option value="2">Lane 2</option>
+              <option value="3">Lane 3</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="override-duration">Duration (Seconds)</label>
+            <select id="override-duration">
+              <option value="20">20 Seconds</option>
+              <option value="45">45 Seconds</option>
+              <option value="60">60 Seconds</option>
+              <option value="90">90 Seconds</option>
+            </select>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <button class="btn" id="override-btn" onclick="triggerOverride()">Trigger Override</button>
+            <button class="btn btn-danger" id="cancel-override-btn" onclick="cancelOverride()" style="display:none;">Cancel Override</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Pipeline Console Logs -->
+      <div class="control-card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+          </svg>
+          Console Diagnostics
+        </div>
+        <div class="logs-container" id="logs-container">
+          <div class="log-entry"><span class="log-time">[00:00:00]</span> Connecting to command websocket...</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Socket.io connection -->
+  <script src="http://localhost:4000/socket.io/socket.io.js"></script>
+  <script>
+    let socket;
+    let jwtToken = localStorage.getItem("token") || "";
+    let isOverrideActive = false;
+
+    // Check login state
+    if (jwtToken) {
+      document.getElementById("auth-section").style.display = "none";
+      document.getElementById("override-section").style.display = "block";
+      document.getElementById("user-tag").innerText = localStorage.getItem("username") || "Officer";
+    }
+
+    // Connect to WebSocket server running on same host/port
+    try {
+      const socketUrl = window.location.protocol === 'file:' ? 'http://localhost:4000' : window.location.origin;
+      socket = io(socketUrl);
+      
+      socket.on("connect", () => {
+        document.getElementById("socket-dot").classList.add("online");
+        document.getElementById("socket-text").innerText = "Online";
+        document.getElementById("socket-text").style.color = "var(--accent-success)";
+        log("info", "Websocket connection established.");
+      });
+
+      socket.on("disconnect", () => {
+        document.getElementById("socket-dot").classList.remove("online");
+        document.getElementById("socket-text").innerText = "Offline";
+        document.getElementById("socket-text").style.color = "var(--accent-danger)";
+        log("danger", "Websocket disconnected. Retrying...");
+      });
+
+      // Handle ticks (every 1 second)
+      socket.on("signal:tick", (state) => {
+        updateFullState(state);
+      });
+
+      // Handle full updates (every decision or data push)
+      socket.on("signal:update", (state) => {
+        updateFullState(state);
+      });
+
+      // Handle override applied
+      socket.on("signal:override", (override) => {
+        isOverrideActive = true;
+        document.getElementById("override-badge").style.display = "inline";
+        document.getElementById("cancel-override-btn").style.display = "block";
+        document.getElementById("override-btn").disabled = true;
+        log("warning", `Manual Override Applied by ${override.issuedBy}: Lane ${override.lane} for ${override.duration}s`);
+      });
+
+      // Handle override cancelled
+      socket.on("signal:override_cancelled", (data) => {
+        isOverrideActive = false;
+        document.getElementById("override-badge").style.display = "none";
+        document.getElementById("cancel-override-btn").style.display = "none";
+        document.getElementById("override-btn").disabled = false;
+        log("info", `Override cancelled. Reason: ${data.reason || 'User canceled'}`);
+      });
+
+    } catch (err) {
+      console.error("Socket error", err);
+      log("danger", "Socket initialization error. Is server running?");
+    }
+
+    // Append log to container
+    function log(type, msg) {
+      const logs = document.getElementById("logs-container");
+      const timeStr = new Date().toTimeString().split(' ')[0];
+      let entry = document.createElement("div");
+      entry.className = "log-entry";
+      
+      let badgeClass = "log-info";
+      if (type === "warning") badgeClass = "log-warning";
+      if (type === "danger") badgeClass = "log-danger";
+
+      entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="${badgeClass}">${msg}</span>`;
+      logs.appendChild(entry);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    // Update Timer display
+    function updateTimer(state) {
+      const remainingVal = Math.round(state.seconds_remaining);
+      document.getElementById("timer-value").innerText = isNaN(remainingVal) ? "--" : remainingVal;
+      
+      const timerCircle = document.getElementById("timer-circle");
+      
+      // Update color matching active state
+      timerCircle.className = "timer-circle";
+      if (state.emergency_active) {
+        timerCircle.classList.add("emergency");
+      } else if (state.override && state.override.active) {
+        timerCircle.classList.add("override");
+      } else {
+        timerCircle.classList.add("green");
+      }
+    }
+
+    // Update entire dashboard view
+    function updateFullState(state) {
+      // Emergency alert bar
+      const banner = document.getElementById("emergency-banner");
+      const activeCard = document.getElementById("active-signal-card");
+      
+      if (state.emergency_active) {
+        banner.style.display = "flex";
+        activeCard.classList.add("emergency-alert");
+      } else {
+        banner.style.display = "none";
+        activeCard.classList.remove("emergency-alert");
+      }
+
+      // Active lane name
+      document.getElementById("active-lane-name").innerText = `LANE ${state.active_lane}`;
+
+      // Override state validation
+      if (state.override && state.override.active) {
+        isOverrideActive = true;
+        document.getElementById("override-badge").style.display = "inline";
+        document.getElementById("cancel-override-btn").style.display = "block";
+        document.getElementById("override-btn").disabled = true;
+      } else {
+        isOverrideActive = false;
+        document.getElementById("override-badge").style.display = "none";
+        document.getElementById("cancel-override-btn").style.display = "none";
+        document.getElementById("override-btn").disabled = false;
+      }
+
+      // Update timer countdown
+      updateTimer(state);
+
+      // Loop and update lanes
+      const laneWeights = state.lane_weights || {};
+      const laneDensities = state.lane_densities || {};
+      
+      // We will compute max weight dynamically to scale cards
+      const weights = Object.values(laneWeights);
+      const maxWeight = Math.max(...weights, 1);
+
+      for (let i = 0; i < 4; i++) {
+        const weightVal = parseFloat(laneWeights[i] || 0);
+        const densityVal = parseInt(laneDensities[i] || 0);
+        const card = document.getElementById(`lane-card-${i}`);
+        const badge = document.getElementById(`lane-badge-${i}`);
+        const barFill = document.getElementById(`lane-density-bar-${i}`);
+
+        // Update counts
+        document.getElementById(`lane-density-val-${i}`).innerText = densityVal;
+        document.getElementById(`lane-weight-${i}`).innerText = weightVal.toFixed(1);
+
+        // Calculate fill bar percentage (cap at 100%)
+        const maxDensityCap = 15;
+        const fillPct = Math.min(100, (densityVal / maxDensityCap) * 100);
+        barFill.style.width = `${fillPct}%`;
+
+        // Reset class lists
+        card.className = "lane-card";
+        badge.className = "lane-status-badge";
+        badge.innerText = "Red";
+        
+        let densityColor = "var(--accent-success)";
+        if (densityVal > 8) densityColor = "var(--accent-warning)";
+        if (densityVal > 12) densityColor = "var(--accent-danger)";
+        barFill.style.backgroundColor = densityColor;
+
+        if (state.active_lane === i) {
+          if (state.emergency_active) {
+            card.classList.add("active-emergency");
+            badge.classList.add("emergency");
+            badge.innerText = "Emergency";
+          } else if (state.override && state.override.active && state.override.lane === i) {
+            card.classList.add("active-override");
+            badge.classList.add("override");
+            badge.innerText = "Override";
+          } else {
+            card.classList.add("active-green");
+            badge.classList.add("green");
+            badge.innerText = "Green";
+          }
+        }
+      }
+
+      // Attempt to load detailed splits if available
+      // Note: detection pushes detail arrays. If optimizer forwards raw snapshots, we could map them.
+      // Since the socket updates are filtered to lane_weights & lane_densities, we calculate mock distribution details:
+      for (let i = 0; i < 4; i++) {
+        const densityVal = parseInt(laneDensities[i] || 0);
+        let cars = Math.floor(densityVal * 0.7);
+        let buses = Math.floor((densityVal - cars) * 0.4);
+        let motos = Math.max(0, densityVal - cars - buses);
+
+        document.getElementById(`lane-cars-${i}`).innerText = cars;
+        document.getElementById(`lane-buses-${i}`).innerText = buses;
+        document.getElementById(`lane-motos-${i}`).innerText = motos;
+      }
+    }
+
+    // JWT Auth log in
+    async function login() {
+      const u = document.getElementById("username").value;
+      const p = document.getElementById("password").value;
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          jwtToken = data.token;
+          localStorage.setItem("token", jwtToken);
+          localStorage.setItem("username", u);
+          document.getElementById("auth-section").style.display = "none";
+          document.getElementById("override-section").style.display = "block";
+          document.getElementById("user-tag").innerText = u;
+          log("info", "Authenticated successfully as Traffic Officer.");
+        } else {
+          alert(data.error || "Authentication failed.");
+          log("danger", "Authentication failed: " + (data.error || "Unknown reason"));
+        }
+      } catch (err) {
+        alert("Server network error");
+        console.error(err);
+      }
+    }
+
+    // Log out
+    function logout() {
+      jwtToken = "";
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      document.getElementById("auth-section").style.display = "block";
+      document.getElementById("override-section").style.display = "none";
+      log("info", "Logged out. Override controls locked.");
+    }
+
+    // Trigger VIP Manual Override
+    async function triggerOverride() {
+      if (!jwtToken) return;
+      const targetLane = parseInt(document.getElementById("override-lane").value);
+      const duration = parseInt(document.getElementById("override-duration").value);
+
+      try {
+        const res = await fetch("/api/signal/override", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${jwtToken}`
+          },
+          body: JSON.stringify({ lane: targetLane, duration: duration })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          log("warning", `Override request sent successfully: Lane ${targetLane} for ${duration}s`);
+        } else {
+          alert(data.error || "Override request rejected.");
+          log("danger", "Override rejected: " + (data.error || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Server communication error.");
+        console.error(err);
+      }
+    }
+
+    // Cancel Manual Override
+    async function cancelOverride() {
+      if (!jwtToken) return;
+
+      try {
+        const res = await fetch("/api/signal/override", {
+          method: "DELETE",
+          headers: { 
+            "Authorization": `Bearer ${jwtToken}`
+          }
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          log("info", "Override cancellation request sent.");
+        } else {
+          alert(data.error || "Cancellation failed.");
+        }
+      } catch (err) {
+        alert("Server communication error.");
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>

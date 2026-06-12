@@ -22,6 +22,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
+const path = require("path");
 require("dotenv").config();
 
 // ──────────────────────────────────────────────
@@ -62,13 +63,13 @@ const USERS = [
     id: 1,
     username: "admin",
     // bcrypt hash of "Admin@1234" — regenerate in production
-    password: "$2a$10$EixZaYVK1fsbw1ZfbX3OXe.PYJhBjSCRDn5j6tX/rMXqcXHFfSMnm",
+    password: "$2a$10$WFrqMkvsWiZKwt4qVh4CKuDnW1dgDKiqI6gEq.zDIhqlWciO3XKo2",
     role: "admin",
   },
   {
     id: 2,
     username: "officer",
-    password: "$2a$10$EixZaYVK1fsbw1ZfbX3OXe.PYJhBjSCRDn5j6tX/rMXqcXHFfSMnm",
+    password: "$2a$10$WFrqMkvsWiZKwt4qVh4CKuDnW1dgDKiqI6gEq.zDIhqlWciO3XKo2",
     role: "officer",
   },
 ];
@@ -79,11 +80,11 @@ const USERS = [
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: CORS_ORIGIN, methods: ["GET", "POST"] },
+  cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-app.use(helmet());
-app.use(cors({ origin: CORS_ORIGIN }));
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(cors({ origin: "*" }));
 app.use(morgan("combined"));
 app.use(express.json());
 
@@ -134,6 +135,11 @@ function requireRole(...roles) {
 // ──────────────────────────────────────────────
 // REST Routes — Public
 // ──────────────────────────────────────────────
+
+/** Serve Command Center Dashboard */
+app.get("/", (_req, res) => {
+  res.sendFile(path.join(__dirname, "dashboard.html"));
+});
 
 /** Health check */
 app.get("/api/health", (_req, res) => {
@@ -208,8 +214,16 @@ app.post(
       issuedBy: req.user.username,
     };
 
-    // Broadcast override to all connected clients immediately
+    // Update active state immediately so the ticker and UI synchronize
+    latestSignalState.active_lane = lane;
+    latestSignalState.seconds_remaining = duration;
+
+    // Broadcast override and full state update immediately
     io.emit("signal:override", manualOverride);
+    io.emit("signal:update", {
+      ...latestSignalState,
+      override: manualOverride,
+    });
 
     console.log(
       `[OVERRIDE] ${req.user.username} → Lane ${lane} for ${duration}s`,
@@ -283,6 +297,17 @@ setInterval(() => {
     ),
     override: manualOverride,
   };
+
+  // If override is active, force the payload values to reflect it
+  if (manualOverride.active) {
+    payload.active_lane = manualOverride.lane;
+    payload.seconds_remaining = Math.max(
+      0,
+      parseFloat(((manualOverride.expiresAt - Date.now()) / 1000).toFixed(1))
+    );
+  }
+
+  latestSignalState.active_lane = payload.active_lane;
   latestSignalState.seconds_remaining = payload.seconds_remaining;
   io.emit("signal:tick", payload);
 }, 1000);

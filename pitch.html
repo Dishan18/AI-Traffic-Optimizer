@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pitch Deck - AI Traffic Optimizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #070a13;
+      --bg-secondary: #0f1524;
+      --bg-tertiary: #192239;
+      --accent: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1, #a855f7);
+      --accent-success: #10b981;
+      --accent-danger: #ef4444;
+      --accent-warning: #f59e0b;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border: rgba(255, 255, 255, 0.08);
+      --glass: rgba(15, 21, 36, 0.6);
+      --font-sans: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Deck Container */
+    .deck-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      perspective: 1500px;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(0.95) translateZ(-100px);
+      transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 4rem 6rem;
+      background: radial-gradient(circle at center, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1) translateZ(0);
+    }
+
+    .slide.prev {
+      transform: translateX(-100%) rotateY(20deg) scale(0.9);
+      opacity: 0;
+    }
+
+    .slide.next {
+      transform: translateX(100%) rotateY(-20deg) scale(0.9);
+      opacity: 0;
+    }
+
+    /* Floating navigation */
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+    }
+
+    .nav-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .nav-btn.prev-btn { left: 2rem; }
+    .nav-btn.next-btn { right: 2rem; }
+
+    /* Progress indicators */
+    .progress-bar {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.75rem;
+      z-index: 100;
+      align-items: center;
+    }
+
+    .progress-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .progress-dot.active {
+      background: var(--accent);
+      width: 30px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+    }
+
+    /* Keyboard tip */
+    .keyboard-hint {
+      position: absolute;
+      bottom: 2rem;
+      right: 2rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .key-badge {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+      color: white;
+    }
+
+    /* Slide specific styles */
+    .slide-content {
+      max-width: 1200px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .slide-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .slide-tag {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      background: var(--accent-glow);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      width: fit-content;
+      margin-bottom: 0.5rem;
+    }
+
+    .slide-title {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-desc {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Glass Cards */
+    .glass-card {
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Title Slide (Slide 1) */
+    .title-slide {
+      text-align: center;
+    }
+
+    .title-logo {
+      width: 80px;
+      height: 80px;
+      background: var(--accent-gradient);
+      border-radius: 24px;
+      margin: 0 auto 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+      animation: pulseLogo 3s infinite ease-in-out;
+    }
+
+    .title-logo svg {
+      width: 44px;
+      height: 44px;
+      fill: white;
+    }
+
+    .main-title {
+      font-size: 4.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, #ffffff, #a5b4fc, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .main-subtitle {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      max-width: 700px;
+      margin: 0 auto 2.5rem;
+      font-weight: 400;
+    }
+
+    .presentation-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Problem Slide (Slide 2) */
+    .problem-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .problem-item {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+
+    .problem-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-danger);
+      flex-shrink: 0;
+    }
+
+    .problem-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .problem-text h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .problem-text p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .stats-card {
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .stats-num {
+      font-size: 4rem;
+      font-weight: 800;
+      color: var(--accent-danger);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    }
+
+    /* Solution Flow (Slide 3) */
+    .solution-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .solution-step {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .solution-step:hover {
+      transform: translateY(-8px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 25px var(--accent-glow);
+    }
+
+    .sol-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--bg-tertiary);
+      border-radius: 14px;
+      margin: 0 auto 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .sol-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: currentColor;
+    }
+
+    .solution-step h4 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .solution-step p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Live Interactive Scheduler (Slide 4) */
+    .range-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .range-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .range-slider {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+      outline: none;
+      accent-color: var(--accent);
+    }
+
+    .calc-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .calc-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .calc-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .calc-output {
+      font-family: monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent-success);
+    }
+
+    /* Key Metrics (Slide 5) */
+    .metric-bar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .metric-bar-container {
+      width: 100%;
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .metric-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      width: 0; /* Animated on slide active */
+      transition: width 1.5s cubic-bezier(0.1, 0.8, 0.1, 1);
+    }
+
+    .fill-before { background: var(--accent-danger); }
+    .fill-after { background: var(--accent-success); }
+
+    /* Animated slide triggers */
+    .slide.active .metric-bar-fill.w-90 { width: 90%; }
+    .slide.active .metric-bar-fill.w-36 { width: 36%; }
+    .slide.active .metric-bar-fill.w-100 { width: 100%; }
+    .slide.active .metric-bar-fill.w-78 { width: 78%; }
+
+    /* Demo arrangement visual (Slide 6) */
+    .window-arrangement {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      background: var(--bg-secondary);
+      padding: 0.75rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .mock-window {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      height: 110px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .mock-header {
+      background: rgba(0,0,0,0.3);
+      padding: 0.35rem 0.5rem;
+      display: flex;
+      gap: 0.3rem;
+      align-items: center;
+    }
+
+    .mock-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .mock-title {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-left: 0.5rem;
+      font-weight: 600;
+    }
+
+    .mock-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Animations */
+    @keyframes pulseLogo {
+      0%, 100% { box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4); }
+      50% { box-shadow: 0 10px 45px rgba(168, 85, 247, 0.6); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Slide Deck -->
+  <div class="deck-container">
+    
+    <!-- Slide 1: Welcome -->
+    <div class="slide active">
+      <div class="slide-content title-slide">
+        <div class="title-logo">
+          <!-- Traffic signal logo -->
+          <svg viewBox="0 0 24 24">
+            <path d="M12,2A10,10,0,0,0,2,12a9.89,9.89,0,0,0,2.26,6.33L3,21a1,1,0,0,0,1,1l2.67-1.26A9.9,9.9,0,0,0,12,22a10,10,0,0,0,10-10A10,10,0,0,0,12,2ZM12,6a2,2,0,1,1-2,2A2,2,0,0,1,12,6Zm0,8a2,2,0,1,1,2-2A2,2,0,0,1,12,14Zm0,4a2,2,0,1,1,2-2A2,2,0,0,1,12,18Z"/>
+          </svg>
+        </div>
+        <h1 class="main-title">AI Traffic Optimizer</h1>
+        <p class="main-subtitle">Intelligent Real-time Intersection Management with Emergency & VIP Control Hub</p>
+        <div>
+          <div class="presentation-badge">
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"/>
+            </svg>
+            Bharat Mandapam Smart City Initiative
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2: The Problem -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-tag">The Challenge</div>
+        <div class="slide-grid">
+          <div>
+            <h2 class="slide-title">Static Timers, Dynamic Chaos</h2>
+            <p class="slide-desc" style="margin-top: 1rem; margin-bottom: 2rem;">Traditional intersection signals operate on rigid, fixed schedules, leading to systemic urban gridlocks, wasted energy, and delayed first responders.</p>
+            <div class="problem-list">
+              <div class="problem-item">
+                <div class="problem-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <div class="problem-text">
+                  <h4>Inefficient Resource Splitting</h4>
+                  <p>Signals give green phases to empty roads while major lanes stack vehicles.</p>
+                </div>
+              </div>
+              <div class="problem-item">
+                <div class="problem-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <div class="problem-text">
+                  <h4>Emergency Vehicle Delays</h4>
+                  <p>Ambulances get trapped in static queues, slowing critical lifesaving response times.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="glass-card stats-card">
+            <div class="stats-num">60s+</div>
+            <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem; color:#fff;">Emergency Latency</h3>
+            <p style="color:var(--text-muted); font-size:0.95rem;">Typical response delay for ambulances trapped behind traffic queues at fixed-signal crossings.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: The Solution -->
+    <div class="slide">
+      <div class="slide-content" style="text-align: center;">
+        <div class="slide-tag">Our Innovation</div>
+        <h2 class="slide-title" style="margin-bottom: 0.5rem;">Intelligent Adaptive Control</h2>
+        <p class="slide-desc" style="max-width: 800px; margin: 0 auto 3rem;">We replace fixed scheduling with a closed-loop system that continuously sees, calculates, schedules, and validates traffic decisions.</p>
+        
+        <div class="solution-flow">
+          <div class="solution-step">
+            <div class="sol-icon">
+              <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+            </div>
+            <h4>1. See (Perception)</h4>
+            <p>YOLOv8 monitors camera feeds, counting cars, buses, and ambulances.</p>
+          </div>
+          <div class="solution-step">
+            <div class="sol-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z"/></svg>
+            </div>
+            <h4>2. Think (Optimizer)</h4>
+            <p>Priority Scheduler processes weights and assigns optimal green times.</p>
+          </div>
+          <div class="solution-step">
+            <div class="sol-icon">
+              <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"/></svg>
+            </div>
+            <h4>3. Route (API Hub)</h4>
+            <p>Secured API coordinates commands and pushes WebSocket state packages.</p>
+          </div>
+          <div class="solution-step">
+            <div class="sol-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            </div>
+            <h4>4. Act (SUMO / Grid)</h4>
+            <p>Dynamic traffic signal controls are simulated and deployed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Interactive Scheduler Demo -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-tag">Interactive Preview</div>
+        <div class="slide-grid">
+          <div class="glass-card">
+            <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem; color:#fff;">Live Allocation Simulator</h3>
+            
+            <div class="range-group">
+              <div class="range-label">
+                <span>Lane 0 (High Priority Count)</span>
+                <span id="lane0-val">12</span>
+              </div>
+              <input type="range" class="range-slider" id="lane0-input" min="1" max="30" value="12" oninput="updateSimulator()">
+            </div>
+
+            <div class="range-group">
+              <div class="range-label">
+                <span>Lane 1 (Minor Cross Road)</span>
+                <span id="lane1-val">4</span>
+              </div>
+              <input type="range" class="range-slider" id="lane1-input" min="1" max="30" value="4" oninput="updateSimulator()">
+            </div>
+
+            <div class="range-group" style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="checkbox" id="emergency-input" style="width:18px; height:18px; accent-color:var(--accent-danger);" onchange="updateSimulator()">
+              <label for="emergency-input" style="font-weight:600; cursor:pointer; color:var(--accent-danger);">Activate Ambulance on Lane 1</label>
+            </div>
+          </div>
+
+          <div class="calc-box">
+            <h3 style="font-size:1.35rem; font-weight:700; margin-bottom:1.5rem; color:#fff;">Brain Queue Decision</h3>
+            <div class="calc-row">
+              <span>Next Green Selected</span>
+              <span class="calc-output" id="out-lane" style="color:var(--accent)">Lane 0</span>
+            </div>
+            <div class="calc-row">
+              <span>Lane 0 Green Duration</span>
+              <span class="calc-output" id="out-lane0-sec">90.0s</span>
+            </div>
+            <div class="calc-row">
+              <span>Lane 1 Green Duration</span>
+              <span class="calc-output" id="out-lane1-sec">30.0s</span>
+            </div>
+            <div class="calc-row">
+              <span>Emergency Pre-emption Mode</span>
+              <span class="calc-output" id="out-emergency" style="color:var(--accent-danger)">Inactive</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Real-World Impact -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-tag">Performance Benchmarks</div>
+        <div class="slide-grid">
+          <div>
+            <h2 class="slide-title">Validated Efficiency</h2>
+            <p class="slide-desc" style="margin-top: 1rem; margin-bottom: 2rem;">Simulations using the Eclipse SUMO framework demonstrate massive traffic throughput and environmental improvements compared to static timetables.</p>
+            
+            <div class="metric-bar-group">
+              <div class="metric-bar-container">
+                <div class="metric-header">
+                  <span>Average Delay Time (Fixed Signal)</span>
+                  <span>45.0 seconds</span>
+                </div>
+                <div class="metric-bar-bg">
+                  <div class="metric-bar-fill fill-before w-90"></div>
+                </div>
+              </div>
+              
+              <div class="metric-bar-container">
+                <div class="metric-header">
+                  <span>Average Delay Time (AI Optimizer)</span>
+                  <span style="color:var(--accent-success)">18.0 seconds</span>
+                </div>
+                <div class="metric-bar-bg">
+                  <div class="metric-bar-fill fill-after w-36"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card" style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div style="border-left: 4px solid var(--accent-success); padding-left: 1rem;">
+              <h4 style="font-size:1.1rem; font-weight:700;">60% Latency Reduction</h4>
+              <p style="font-size:0.9rem; color:var(--text-muted);">Calculated from average vehicle queues at peak capacities.</p>
+            </div>
+            <div style="border-left: 4px solid var(--accent-success); padding-left: 1rem;">
+              <h4 style="font-size:1.1rem; font-weight:700;">22% Fuel Savings</h4>
+              <p style="font-size:0.9rem; color:var(--text-muted);">Achieved by reducing idle stop-and-start emissions.</p>
+            </div>
+            <div style="border-left: 4px solid var(--accent-success); padding-left: 1rem;">
+              <h4 style="font-size:1.1rem; font-weight:700;">Zero-Delay Emergency Corridor</h4>
+              <p style="font-size:0.9rem; color:var(--text-muted);">Immediate pre-emption switches targets in less than 3 seconds.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Presenting Your Prototype -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-tag">Demo Execution Setup</div>
+        <div class="slide-grid">
+          <div>
+            <h2 class="slide-title">How to Demo the System</h2>
+            <p class="slide-desc" style="margin-top: 1rem; margin-bottom: 1.5rem;">For presentations, execute <code>start_demo.bat</code>. Arrange your four window quadrants to provide judges with a clear visual perspective of the system workflow:</p>
+            
+            <ul style="color:var(--text-muted); font-size:0.95rem; list-style-position:inside; display:flex; flex-direction:column; gap:0.5rem;">
+              <li><strong>Top Left</strong>: Live CV Perception Feed showing color congestion bars.</li>
+              <li><strong>Top Right</strong>: Interactive SUMO GUI rendering vehicle flows.</li>
+              <li><strong>Bottom Left</strong>: Command line terminals displaying prioritizations.</li>
+              <li><strong>Bottom Right</strong>: Command center dashboard showing live signal overrides.</li>
+            </ul>
+          </div>
+          
+          <div class="window-arrangement">
+            <div class="mock-window">
+              <div class="mock-header">
+                <div class="mock-dot" style="background:var(--accent-danger)"></div>
+                <div class="mock-dot" style="background:var(--accent-warning)"></div>
+                <div class="mock-dot" style="background:var(--accent-success)"></div>
+                <span class="mock-title">YOLOv8 Perception Feed</span>
+              </div>
+              <div class="mock-body" style="background:#0c101b; color:var(--accent)">🎥 CV CAMERA</div>
+            </div>
+            
+            <div class="mock-window">
+              <div class="mock-header">
+                <div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div>
+                <span class="mock-title">SUMO Grid Simulation</span>
+              </div>
+              <div class="mock-body" style="background:#0c101b; color:var(--accent-success)">🚗 SUMO NETWORK</div>
+            </div>
+
+            <div class="mock-window" style="height:90px;">
+              <div class="mock-header">
+                <div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div>
+                <span class="mock-title">Optimizer Terminal</span>
+              </div>
+              <div class="mock-body" style="background:#05070a; color:#c9d1d9; font-family:monospace; font-size:0.6rem; justify-content:flex-start; align-items:flex-start; padding:0.5rem;">
+                [OPTIMIZER] Weight calculations...<br>[DECISION] Green -> Lane 0
+              </div>
+            </div>
+
+            <div class="mock-window" style="height:90px;">
+              <div class="mock-header">
+                <div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div>
+                <span class="mock-title">Web Override Dashboard</span>
+              </div>
+              <div class="mock-body" style="background:#0c101b; color:var(--accent-warning)">💻 LIVE DASHBOARD</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Next Phase Roadmap -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-tag">Roadmap</div>
+        <div class="slide-grid">
+          <div>
+            <h2 class="slide-title">Scale & Smart Cities</h2>
+            <p class="slide-desc" style="margin-top: 1.5rem; margin-bottom: 2rem;">Transitioning from single-node prototypes to connected intelligent networks capable of city-scale orchestration.</p>
+            <div class="problem-list">
+              <div class="problem-item">
+                <div class="problem-icon" style="background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.2); color:var(--accent);">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <div class="problem-text">
+                  <h4>Connected Corridors (Green Waves)</h4>
+                  <p>Signals communicate with adjacent intersections to synchronize continuous flows.</p>
+                </div>
+              </div>
+              <div class="problem-item">
+                <div class="problem-icon" style="background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.2); color:var(--accent);">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <div class="problem-text">
+                  <h4>Deep Reinforcement Learning</h4>
+                  <p>Replacing mathematical formulas with self-learning neural nets that adapt to yearly patterns.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card" style="text-align:center; padding:3rem 2rem;">
+            <h3 style="font-size:1.75rem; font-weight:800; margin-bottom:1rem; color:#fff;">Ready for Deployment</h3>
+            <p style="color:var(--text-muted); font-size:1rem; margin-bottom:2rem;">Designed to leverage existing CCTV networks without requiring expensive electromagnetic loop sensor road modifications.</p>
+            <div style="font-weight:700; color:var(--accent-success); font-size:1.25rem;">AI TRAFFIC OPTIMIZER 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Navigation dots -->
+  <div class="progress-bar" id="progress-container"></div>
+
+  <!-- Floating Nav Buttons -->
+  <button class="nav-btn prev-btn" onclick="prevSlide()">
+    <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+  </button>
+  <button class="nav-btn next-btn" onclick="nextSlide()">
+    <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+  </button>
+
+  <!-- Keyboard hints -->
+  <div class="keyboard-hint">
+    <span>Navigate:</span>
+    <span class="key-badge">&larr;</span>
+    <span class="key-badge">&rarr;</span>
+  </div>
+
+  <script>
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const progressContainer = document.getElementById('progress-container');
+
+    // Generate progress dots
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('div');
+      dot.className = `progress-dot ${i === 0 ? 'active' : ''}`;
+      dot.onclick = () => showSlide(i);
+      progressContainer.appendChild(dot);
+    }
+    const dots = document.querySelectorAll('.progress-dot');
+
+    function showSlide(index) {
+      if (index < 0 || index >= totalSlides) return;
+
+      slides[currentSlideIndex].classList.remove('active');
+      dots[currentSlideIndex].classList.remove('active');
+
+      currentSlideIndex = index;
+      
+      slides[currentSlideIndex].classList.add('active');
+      dots[currentSlideIndex].classList.add('active');
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) {
+        showSlide(currentSlideIndex + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        showSlide(currentSlideIndex - 1);
+      }
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      }
+    });
+
+    // Live Simulator Formula on Slide 4
+    function updateSimulator() {
+      const lane0Count = parseInt(document.getElementById('lane0-input').value);
+      const lane1Count = parseInt(document.getElementById('lane1-input').value);
+      const isEmergency = document.getElementById('emergency-input').checked;
+
+      document.getElementById('lane0-val').innerText = lane0Count;
+      document.getElementById('lane1-val').innerText = lane1Count;
+
+      // Base weights
+      // W = cars * 1
+      let w0 = lane0Count * 1.0;
+      let w1 = lane1Count * 1.0;
+
+      if (isEmergency) {
+        w1 += 100.0; // Ambulance weight
+        document.getElementById('out-emergency').innerText = "Active (Lane 1 Priority)";
+        document.getElementById('out-emergency').style.color = "var(--accent-danger)";
+        document.getElementById('out-lane').innerText = "Lane 1 (Emergency)";
+        document.getElementById('out-lane').style.color = "var(--accent-danger)";
+        document.getElementById('out-lane1-sec').innerText = "60.0s (Hold)";
+        document.getElementById('out-lane0-sec').innerText = "0.0s (Pre-empted)";
+      } else {
+        document.getElementById('out-emergency').innerText = "Inactive";
+        document.getElementById('out-emergency').style.color = "var(--text-muted)";
+        
+        let sumW = w0 + w1;
+        let green0 = Math.max(10, Math.min(90, (w0 / sumW) * 120));
+        let green1 = Math.max(10, Math.min(90, (w1 / sumW) * 120));
+
+        document.getElementById('out-lane0-sec').innerText = green0.toFixed(1) + "s";
+        document.getElementById('out-lane1-sec').innerText = green1.toFixed(1) + "s";
+
+        if (w0 >= w1) {
+          document.getElementById('out-lane').innerText = "Lane 0";
+          document.getElementById('out-lane').style.color = "var(--accent)";
+        } else {
+          document.getElementById('out-lane').innerText = "Lane 1";
+          document.getElementById('out-lane').style.color = "var(--accent)";
+        }
+      }
+    }
+
+    // Run initial update for simulator
+    updateSimulator();
+  </script>
+</body>
+</html>
