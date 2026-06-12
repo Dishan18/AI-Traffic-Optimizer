@@ -817,7 +817,6 @@ python sumo_config.py --gui                      # Terminal 4
 Built for **Bharat Mandapam Smart City Showcase**  
 Stack: Python · OpenCV · YOLOv8 · ZeroMQ · Node.js · Express · Socket.io · JWT · SUMO · Power BI
 
-**Enhanced Demo Version** — Optimized for technical presentations and judge evaluations
 
 ---
 
