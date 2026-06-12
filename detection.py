@@ -331,8 +331,19 @@ def run_detection(video_source=0, n_lanes: int = 4, display: bool = True):
     detector = YOLODetector(MODEL_PATH) if YOLO_AVAILABLE and Path(MODEL_PATH).exists() else MockDetector()
     logger.info(f"Using detector: {detector.__class__.__name__}")
 
-    # Video capture
-    cap = cv2.VideoCapture(video_source)
+    # Video capture - Enforce FFmpeg backend for video files
+    is_webcam = False
+    try:
+        int(video_source)
+        is_webcam = True
+    except ValueError:
+        pass
+
+    if not is_webcam and isinstance(video_source, str) and not video_source.isdigit():
+        cap = cv2.VideoCapture(video_source, cv2.CAP_FFMPEG)
+    else:
+        cap = cv2.VideoCapture(video_source)
+
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,  FRAME_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
     if not cap.isOpened():
@@ -347,13 +358,23 @@ def run_detection(video_source=0, n_lanes: int = 4, display: bool = True):
         while True:
             ret, frame = cap.read()
             if not ret:
-                logger.warning("Frame read failed — end of stream or camera error.")
-                break
+                # Loop video files instead of shutting down the engine
+                if not is_webcam:
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    ret, frame = cap.read()
+                
+                if not ret:
+                    logger.warning("Frame read failed — end of stream or camera error.")
+                    break
 
             now = time.time()
             if (now - last_time) < frame_interval:
                 continue
             last_time = now
+
+            # Resize the frame to a standard resolution (1280x720) so the output is consistent 
+            # and fits fully on any laptop screen, preventing cropping/overflow
+            frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
 
             rois         = build_rois(frame.shape[1], frame.shape[0], n_lanes)
             detections   = detector.detect(frame)
@@ -378,7 +399,10 @@ def run_detection(video_source=0, n_lanes: int = 4, display: bool = True):
                 "lanes":     [asdict(s) for s in lane_states],
                 "timestamp": time.time(),
             }
-            socket.send_json(payload, zmq.NOBLOCK)
+            try:
+                socket.send_json(payload, zmq.NOBLOCK)
+            except zmq.error.Again:
+                pass
 
             # Emergency log
             emergency_lanes = [s.lane_id for s in lane_states if s.emergency]

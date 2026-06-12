@@ -105,17 +105,20 @@ def download_yolo_model():
         print(f"❌ Failed to download YOLO model: {e}")
         return False
 
-def create_demo_script():
+def create_demo_script(video_file="traffic_video.mp4"):
     """Create a batch script to start all processes"""
+    if not video_file:
+        video_file = "traffic_video.mp4"
+        
     if os.name == 'nt':  # Windows
-        script_content = """@echo off
+        script_content = f"""@echo off
 echo Starting AI Traffic Optimizer Demo...
 echo.
 echo Opening 4 terminal windows...
 echo.
 
 echo Terminal 1: Detection Engine
-start cmd /k "python detection.py --source traffic_video.mp4"
+start cmd /k "python detection.py --source {video_file}"
 
 timeout /t 3
 
@@ -140,12 +143,12 @@ pause
         Path("start_demo.bat").write_text(script_content)
         print("✅ Created start_demo.bat - you can use this to launch the entire demo")
     else:  # Linux/Mac
-        script_content = """#!/bin/bash
+        script_content = f"""#!/bin/bash
 echo "Starting AI Traffic Optimizer Demo..."
 echo
 
 echo "Terminal 1: Detection Engine"
-gnome-terminal -- bash -c "python detection.py --source traffic_video.mp4; exec bash"
+gnome-terminal -- bash -c "python detection.py --source {video_file}; exec bash"
 
 sleep 3
 
@@ -202,7 +205,7 @@ def main():
         all_good = False
     
     # Create demo startup script
-    create_demo_script()
+    create_demo_script(video_file)
     
     print()
     print("=" * 60)

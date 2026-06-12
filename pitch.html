@@ -552,6 +552,117 @@
       0%, 100% { box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4); }
       50% { box-shadow: 0 10px 45px rgba(168, 85, 247, 0.6); }
     }
+
+    /* Technical Pipeline Flow & Tech Stack styles */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    .tech-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: all 0.3s;
+    }
+    .tech-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+    .tech-card h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .tech-card h4 svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--accent);
+    }
+    .tech-card ul {
+      list-style: none;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .tech-card ul li {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .tech-card ul li::before {
+      content: "→";
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .tech-badge {
+      font-size: 0.75rem;
+      background: var(--bg-tertiary);
+      color: var(--accent);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: 600;
+    }
+    
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      width: 100%;
+    }
+    .pipeline-step-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+      position: relative;
+    }
+    .pipeline-num {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--accent);
+      background: var(--bg-tertiary);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .pipeline-info h4 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      color: #fff;
+    }
+    .pipeline-info p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+    .pipeline-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 <body>
@@ -654,6 +765,125 @@
             </div>
             <h4>4. Act (SUMO / Grid)</h4>
             <p>Dynamic traffic signal controls are simulated and deployed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+    <!-- Slide: Technical Pipeline & Data Flow -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-tag">Under The Hood</div>
+        <h2 class="slide-title" style="margin-bottom: 1rem;">System Pipeline & Data Flow</h2>
+        <div class="pipeline-grid">
+          <div class="pipeline-step-card">
+            <div class="pipeline-num">1</div>
+            <div class="pipeline-info">
+              <h4>Perception Engine</h4>
+              <p>Performs object detection using a fine-tuned YOLOv8 Nano model on OpenCV video frame streams at 10 FPS.</p>
+              <div class="pipeline-meta">
+                <span class="tech-badge">Python 3.11</span>
+                <span class="tech-badge">YOLOv8</span>
+                <span class="tech-badge">OpenCV</span>
+                <span class="tech-badge">ZeroMQ PUSH</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="pipeline-step-card">
+            <div class="pipeline-num">2</div>
+            <div class="pipeline-info">
+              <h4>Optimizer Brain</h4>
+              <p>Applies mathematical weights to vehicle classes and schedules phases using a negated Max-Heap Priority Queue. Allocations are clamped between 10s-90s.</p>
+              <div class="pipeline-meta">
+                <span class="tech-badge">Python 3.11</span>
+                <span class="tech-badge">Negated Min-Heap</span>
+                <span class="tech-badge">ZeroMQ PULL/PUB</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pipeline-step-card">
+            <div class="pipeline-num">3</div>
+            <div class="pipeline-info">
+              <h4>Command API Server</h4>
+              <p>Express backend receives optimizer updates via ZeroMQ, runs a 1-second countdown ticker, and broadcasts WebSocket states. Exposes JWT-secured REST routes for overrides.</p>
+              <div class="pipeline-meta">
+                <span class="tech-badge">Node.js</span>
+                <span class="tech-badge">Socket.io</span>
+                <span class="tech-badge">JWT auth</span>
+                <span class="tech-badge">Express</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pipeline-step-card">
+            <div class="pipeline-num">4</div>
+            <div class="pipeline-info">
+              <h4>Simulation Validation</h4>
+              <p>Subscribes to the optimizer state feed. Uses TraCI API to force red/yellow/green states on a simulated sumo traffic junction network in real-time.</p>
+              <div class="pipeline-meta">
+                <span class="tech-badge">SUMO GUI</span>
+                <span class="tech-badge">TraCI API</span>
+                <span class="tech-badge">ZeroMQ SUB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide: Core Tech Stack -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-tag">Technology Stack</div>
+        <h2 class="slide-title" style="margin-bottom: 1rem;">Architectural Specifications</h2>
+        <div class="tech-grid">
+          <div class="tech-card">
+            <h4>
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/></svg>
+              AI & Vision
+            </h4>
+            <ul>
+              <li><strong>YOLOv8 Nano Model</strong>: Fast, high-accuracy object detection (< 15ms latency).</li>
+              <li><strong>OpenCV</strong>: Handles frame decodings, ROIs, and dashboard overlays.</li>
+            </ul>
+          </div>
+
+          <div class="tech-card">
+            <h4>
+              <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+              Messaging & IPC
+            </h4>
+            <ul>
+              <li><strong>ZeroMQ (pyzmq / zeromq.js)</strong>: High-throughput, low-latency TCP communication.</li>
+              <li><strong>Socket.io</strong>: Handles push updates to active operator web interfaces.</li>
+            </ul>
+          </div>
+
+          <div class="tech-card">
+            <h4>
+              <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              Web & Security
+            </h4>
+            <ul>
+              <li><strong>Express.js Router</strong>: Standard REST API.</li>
+              <li><strong>JWT HS256 Auth</strong>: Encrypted tokens for secure traffic operator overrides.</li>
+              <li><strong>Helmet & Rate-Limits</strong>: Middleware hardening.</li>
+            </ul>
+          </div>
+
+          <div class="tech-card">
+            <h4>
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              Simulation & Logs
+            </h4>
+            <ul>
+              <li><strong>SUMO (Eclipse)</strong>: Microscopic traffic simulation.</li>
+              <li><strong>Pandas & SQLite</strong>: Persistent storage for traffic metrics logging.</li>
+            </ul>
           </div>
         </div>
       </div>
